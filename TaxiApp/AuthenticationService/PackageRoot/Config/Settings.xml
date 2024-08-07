@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Settings xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <!-- Add your custom configuration sections and parameters here -->
+  <!--
+  <Section Name="MyConfigSection">
+    <Parameter Name="MyParameter" Value="Value1" />
+  </Section>
+  -->
+	<Section Name="AzureStorage">
+		<Parameter Name="StorageConnectionString" Value="UseDevelopmentStorage=true" />
+		<Parameter Name="UsersTable" Value="users" />
+		<Parameter Name="BlobContainer" Value="userimages" />
+	</Section>
+	
+	<Section Name="AzureStorageQueue">
+		<Parameter Name="StorageConnectionString" Value="UseDevelopmentStorage=true" />
+		<Parameter Name="RegistrationQueueName" Value="registration-queue" />
+		<Parameter Name="LoginQueueName" Value="login-queue" />
+		<Parameter Name="LoginResponseQueueName" Value="login-response-queue" />
+		<Parameter Name="UpdateUserQueueName" Value="update-user-queue" />
+		<Parameter Name="UpdateUserResponseQueueName" Value="update-user-response-queue" />
+	</Section>
+</Settings>
