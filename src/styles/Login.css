@@ -1,0 +1,51 @@
+.login-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: center;
+}
+
+.login-card h2 {
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.login-card input[type="email"],
+.login-card input[type="password"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.login-card button {
+    width: calc(100% - 20px);
+    padding: 10px;
+    background-color: #0072ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    margin: 20px 0;
+}
+
+.login-card button:hover {
+    background-color: #005bb5;
+}
+
+.login-card a {
+    display: block;
+    margin-top: 10px;
+    color: #0072ff;
+    text-decoration: none;
+}
+
+.login-card a:hover {
+    text-decoration: underline;
+}
