@@ -17,7 +17,6 @@
 		<Parameter Name="RegistrationQueueName" Value="registration-queue" />
 		<Parameter Name="LoginQueueName" Value="login-queue" />
 		<Parameter Name="LoginResponseQueueName" Value="login-response-queue" />
-		<Parameter Name="UpdateUserQueueName" Value="update-user-queue" />
-		<Parameter Name="UpdateUserResponseQueueName" Value="update-user-response-queue" />
+		
 	</Section>
 </Settings>

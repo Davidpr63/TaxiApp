@@ -3,7 +3,7 @@ using Azure.Storage.Queues;
 using System.Text;
 using System.Fabric.Description;
 
-namespace ApiGatewayService.QueueServiceCommunication
+namespace ApiGatewayService.QueueApiServiceCommunication
 {
     public class LoginResponseQueue
     {

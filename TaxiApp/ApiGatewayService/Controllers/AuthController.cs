@@ -7,7 +7,7 @@ using AuthenticationService.IAuth;
 using ApiGatewayService.DTOmodels;
 using System.ServiceModel;
 using Microsoft.AspNetCore.Authentication;
-using ApiGatewayService.QueueServiceCommunication;
+using ApiGatewayService.QueueApiServiceCommunication;
 using ApiGatewayService.CloudStorageService;
 using ApiGatewayService.Models;
 using System.Text;
@@ -26,14 +26,13 @@ namespace ApiGatewayService.Controllers
         private readonly RegistrationQueueService _authQueueService;
         private readonly LoginQueueService _loginQueueService;
         private readonly LoginResponseQueue _loginResponseQueueService;
-        private readonly UpdateUserQueueService _updateUserQueueService;
-        private readonly UpdateUserResponseQueue _updateUserResponseQueueService;
+       
 
         private readonly TableStorageService _tableStorageService;
         private readonly BlobStorageService _blobStorageService;
         private TokenGenerateService _tokenGenerateService;
         private List<User> allUsers = new List<User>();
-        public AuthController(TokenGenerateService tokenGenerateService, UpdateUserQueueService updateUserQueueService, UpdateUserResponseQueue updateUserResponseQueue, RegistrationQueueService authQueueService, LoginQueueService loginQueueService, LoginResponseQueue loginResponseQueueService,  TableStorageService tableStorageService, BlobStorageService blobStorageService)
+        public AuthController(TokenGenerateService tokenGenerateService, RegistrationQueueService authQueueService, LoginQueueService loginQueueService, LoginResponseQueue loginResponseQueueService,  TableStorageService tableStorageService, BlobStorageService blobStorageService)
         {
             _authQueueService = authQueueService;
             _tableStorageService = tableStorageService;
@@ -41,8 +40,7 @@ namespace ApiGatewayService.Controllers
             _loginQueueService = loginQueueService;
             _loginResponseQueueService = loginResponseQueueService;
             _tokenGenerateService = tokenGenerateService;
-            _updateUserQueueService = updateUserQueueService;
-            _updateUserResponseQueueService = updateUserResponseQueue;
+           
             
         }
         [HttpPost("register")]
@@ -132,35 +130,7 @@ namespace ApiGatewayService.Controllers
                 return BadRequest("Register exception :" + e.Message);
             }
         }
-        [HttpPut("update-user")]
-        public async Task<IActionResult> UpdateUserData([FromForm] UserDTO updateUserData)
-        {
-            try
-            {
-                
-                await _updateUserQueueService.QueueUpdateUserAsync(updateUserData);
-                string respone = await _updateUserResponseQueueService.QueueUpdateUserResponseAsync();
-                if (respone.Equals("success"))
-                {
-                    return Ok(new { success = true });
-                }
-                else
-                {
-                    return Ok(new { success = false, error = respone });
-                }
-
-
-
-               
-
-                
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return BadRequest("Register exception :" + e.Message);
-            }
-        }
+       
 
         public async Task LoadData()
         {

@@ -17,5 +17,6 @@ namespace AuthenticationService.DTOmodels
         public string? Address { get; set; }
         public IFormFile? Image { get; set; }
         public string? ImageUrl { get; set; }
+        public string? VerifcationStatus { get; set; }
     }
 }

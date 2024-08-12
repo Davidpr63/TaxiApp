@@ -1,18 +1,14 @@
-﻿using AuthenticationService.IAuth;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
+﻿using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Runtime;
- 
-using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
 using ApiGatewayService.TokenService;
 using System.Fabric;
-using ApiGatewayService.QueueServiceCommunication;
+using ApiGatewayService.QueueApiServiceCommunication;
 using ApiGatewayService.CloudStorageService;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ApiGatewayService.QueueServiceCommunication;
 
 namespace ApiGatewayService
 {
@@ -43,6 +39,8 @@ namespace ApiGatewayService
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         builder.Services.AddSingleton<TableStorageService>();
                         builder.Services.AddSingleton<BlobStorageService>();
+                        builder.Services.AddSingleton<DriversVerificationTableStorage>();
+                        
                         //builder.Services.AddSingleton<IAuthentication>(provider =>
                         //{
                         //    var serviceUri = new Uri("fabric:/TaxiApp/AuthenticationService");
@@ -98,6 +96,7 @@ namespace ApiGatewayService
 
                             return new UpdateUserResponseQueue(connectionString, queueName);
                         });
+                        builder.Services.AddSingleton<DriverApplicationQueueService>();
                         builder.Services.AddSingleton(new TokenGenerateService(
                                     builder.Configuration["Jwt:Secret"],
                                     builder.Configuration["Jwt:Issuer"],

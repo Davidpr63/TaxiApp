@@ -3,7 +3,7 @@ using Azure.Storage.Queues;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace ApiGatewayService.QueueServiceCommunication
+namespace AuthenticationService.QueueAuthServiceCommunication
 {
     public class LoginResponseQueueService
     {

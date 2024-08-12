@@ -2,7 +2,7 @@
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Http;
 
-namespace ApiGatewayService.Models
+namespace UserService.Models
 {
     public enum TypeOfUser { Admin, User, Driver};
     public class User : ITableEntity

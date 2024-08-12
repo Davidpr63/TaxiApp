@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthenticationService.QueueServiceCommunication
+namespace UserService.QueueUserServiceCommunication
 {
     public class UpdateUserResponseQueueService
     {

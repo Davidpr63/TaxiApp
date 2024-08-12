@@ -15,6 +15,6 @@ namespace AuthenticationService.IAuth
     {
         Task RegisterUserAsync(User newUser);
         Task LoginUserAsync(LoginDTOUser loginDTOUser);
-        Task UpdateUserAsync(UserDTO updateUserData);
+     
     }
 }

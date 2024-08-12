@@ -3,7 +3,7 @@ using Azure.Storage.Queues;
 using System.Text;
 using System.Fabric.Description;
 
-namespace ApiGatewayService.QueueServiceCommunication
+namespace ApiGatewayService.QueueApiServiceCommunication
 {
     public class UpdateUserResponseQueue
     {
@@ -28,9 +28,7 @@ namespace ApiGatewayService.QueueServiceCommunication
                         foreach (QueueMessage message in UpdateUserResponseQueueMessages)
                         {
 
-                            var response = Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText));
-                           
-                            
+                            var response = Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)); 
                             await _queueClient.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                             return response;
 

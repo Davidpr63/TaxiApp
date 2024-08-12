@@ -23,8 +23,8 @@ using Azure.Data.Tables;
 using AuthenticationService.CloudStorageService;
 using AuthenticationService.Models;
 using System.Security.Cryptography;
-using ApiGatewayService.QueueServiceCommunication;
-using AuthenticationService.QueueServiceCommunication;
+
+using AuthenticationService.QueueAuthServiceCommunication;
 namespace AuthenticationService
 {
     /// <summary>
@@ -34,11 +34,11 @@ namespace AuthenticationService
     {
         private readonly QueueClient _registrationQueue;
         private readonly QueueClient _loginQueue;
-        private readonly QueueClient _updateUserQueue;
+   
         private readonly LoginResponseQueueService _loginResponseQueue;
-        private readonly UpdateUserResponseQueueService _updateUserResponseQueueService;
+  
         private TableStorageService _tableStorageService;
-        private BlobStorageService _blobStorageService;
+   
         private List<User> allUsers = new List<User>();
         public AuthenticationService(StatelessServiceContext context)
         : base(context)
@@ -49,14 +49,14 @@ namespace AuthenticationService
             string queueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RegistrationQueueName"].Value;
 
             string loginQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginQueueName"].Value;
-            string UpdateUserQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["UpdateUserQueueName"].Value;
+      
        
             string tableName = settings.Settings.Sections["AzureStorage"].Parameters["UsersTable"].Value;
-            string blobContainerName = settings.Settings.Sections["AzureStorage"].Parameters["BlobContainer"].Value;
+          
 
             string loginResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginResponseQueueName"].Value; 
 
-            string UpdateUserResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["UpdateUserResponseQueueName"].Value; 
+            
 
             _registrationQueue = new QueueClient(connectionString, queueName);
             _registrationQueue.CreateIfNotExists();
@@ -64,16 +64,14 @@ namespace AuthenticationService
             _loginQueue = new QueueClient(connectionString, loginQueueName);
             _loginQueue.CreateIfNotExists();
 
-            _updateUserQueue = new QueueClient(connectionString, UpdateUserQueueName);
-            _updateUserQueue.CreateIfNotExists();
-
+          
 
             _loginResponseQueue = new LoginResponseQueueService(connectionString, loginResponseQueueName);
-            _updateUserResponseQueueService = new UpdateUserResponseQueueService(connectionString, UpdateUserResponseQueueName);
+   
             
 
             _tableStorageService = new TableStorageService(connectionString, tableName);
-            _blobStorageService = new BlobStorageService(connectionString, blobContainerName);
+           
             Task.Run(() => ProcessQueueMessagesAsync());
         }
         private async Task ProcessQueueMessagesAsync()
@@ -85,7 +83,7 @@ namespace AuthenticationService
                  
                     QueueMessage[] RegQueueMessages = await _registrationQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
                     QueueMessage[] LoginQueueMessages = await _loginQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
-                    QueueMessage[] UpdateUserQueueMessages = await _updateUserQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    //QueueMessage[] UpdateUserQueueMessages = await _updateUserQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
             
                     if (RegQueueMessages.Length > 0)
                     {
@@ -107,16 +105,16 @@ namespace AuthenticationService
                             await _loginQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                         }
                     }
-                    if (UpdateUserQueueMessages.Length > 0)
-                    {
-                        foreach (QueueMessage message in UpdateUserQueueMessages)
-                        {
+                    //if (UpdateUserQueueMessages.Length > 0)
+                    //{
+                    //    foreach (QueueMessage message in UpdateUserQueueMessages)
+                    //    {
 
-                            var loginUser = JsonConvert.DeserializeObject<UserDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
-                            await UpdateUserAsync(loginUser);
-                            await _loginQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
-                        }
-                    }
+                    //        var loginUser = JsonConvert.DeserializeObject<UserDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                    //        await UpdateUserAsync(loginUser);
+                    //        await _loginQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                    //    }
+                    //}
 
                 }
                 catch (Exception ex)
@@ -169,82 +167,6 @@ namespace AuthenticationService
                 return;
             }
         }
-
-        public async Task UpdateUserAsync(UserDTO updateUserData)
-        {
-            try
-            {
-                await LoadData();
-                string imageUrl = "";
-
-
-
-
-
-
-                if (!string.IsNullOrEmpty(updateUserData.Password) || !string.IsNullOrEmpty(updateUserData.ConfirmPassword) && updateUserData.Password != updateUserData.ConfirmPassword)
-                {
-                    //return Ok(new { success = false, error = "Passwords dont match!" });
-                    await _updateUserResponseQueueService.QueueUpdateUserResponseAsync("Passwords dont match!");
-                }
-
-
-                if (!string.IsNullOrEmpty(updateUserData.Email) && updateUserData.Email != loggedInUser.Email)
-                {
-                    if (!ExistUser(updateUserData.Email))
-                    {
-                        loggedInUser.Email = updateUserData.Email;
-                    }
-                    else
-                    {
-                        // return Ok(new { success = false, error = "That email already exists, please use another one." });
-                        await _updateUserResponseQueueService.QueueUpdateUserResponseAsync("That email already exists, please use another one!");
-                    }
-                }
-                if (!string.IsNullOrEmpty(updateUserData.Firstname))
-                {
-                    loggedInUser.Firstname = updateUserData.Firstname;
-                }
-                if (!string.IsNullOrEmpty(updateUserData.Lastname))
-                {
-                    loggedInUser.Lastname = updateUserData.Lastname;
-                }
-                if (!string.IsNullOrEmpty(updateUserData.Username))
-                {
-                    loggedInUser.Username = updateUserData.Username;
-                }
-
-
-                //      AuthController.UserTemp.Email = updateUserData.Email;
-                if (!string.IsNullOrEmpty(updateUserData.Password))
-                {
-                    loggedInUser.Password = HashPassword(updateUserData.Password);
-                }
-                if (!string.IsNullOrEmpty(updateUserData.DateOfBirth))
-                {
-                    loggedInUser.DateOfBirth = updateUserData.DateOfBirth;
-                }
-                if (!string.IsNullOrEmpty(updateUserData.Address))
-                {
-                    loggedInUser.Address = updateUserData.Address;
-                }
-
-                if (updateUserData.Image != null)
-                {
-                    imageUrl = await _blobStorageService.UploadImageAsync(updateUserData.Image);
-                    loggedInUser.ImageUrl = imageUrl;
-                }
-
-                await _tableStorageService.UpdateUserAsync(loggedInUser);
-                await _updateUserResponseQueueService.QueueUpdateUserResponseAsync("success");
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return;
-            }
-        }
         public string HashPassword(string password)
         {
             try
@@ -270,20 +192,7 @@ namespace AuthenticationService
             }
 
         }
-        public bool ExistUser(string email)
-        {
-            bool result = false;
 
-            foreach (var item in allUsers)
-            {
-                if (item.Email == email)
-                {
-                    result = true;
-                    return result;
-                }
-            }
-            return result;
-        }
         public async Task LoadData()
         {
             try
@@ -296,5 +205,6 @@ namespace AuthenticationService
 
             }
         }
+
     }
 }
