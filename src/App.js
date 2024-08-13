@@ -3,6 +3,9 @@ import RegistrationPage from './Components/RegistrationPage';
 import DashboardPage from './Components/DashboardPage';
 import UserDataPage from './Components/UserDataPage';
 import VerificationPage from './Components/VerificationsPage';
+import AdminPage from './Components/AdminPage';
+import DriverPage from './Components/DriverPage';
+import UserPage from './Components/UserPage';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 
@@ -31,8 +34,8 @@ function App() {
             <Route path="/register" element={<RegistrationPage />} />
             <Route path="/user-data" element={<UserDataPage />} />
             <Route path="/verifications" element={<VerificationPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
+            <Route path="/new-rides" element={<DriverPage />} />
+            <Route path="/create-ride" element={<UserPage />} />
           </Routes>
            
         </div>

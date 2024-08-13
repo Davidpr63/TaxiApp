@@ -150,6 +150,78 @@ const apiService = {
       console.error('Error: reject driver:', error);
       throw error;
     }
+  },
+  OrderARide: async (rideDto) => {
+    try {
+     
+     
+      console.log('api ride - ', rideDto)
+      const response = await fetch(`${apiUrl}/api/user/order-a-ride`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(rideDto)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: ordering ride:', error);
+      throw error;
+    }
+  },
+  GetAllRides: async () => {
+    try {
+     
+      
+      
+      const response = await fetch(`${apiUrl}/api/user/get-all-rides`, {
+        method: 'GET',
+         
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: ordering ride:', error);
+      throw error;
+    }
+  },
+  AcceptRide: async (rideId, driverId) => {
+    try {
+     
+      const dataForBack = {
+        rideId,
+        driverId
+      };
+      console.log('api dataforback - ', dataForBack)
+      const response = await fetch(`${apiUrl}/api/user/accept-ride`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: ordering ride:', error);
+      throw error;
+    }
   }
 };
 export default apiService;

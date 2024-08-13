@@ -11,9 +11,9 @@ const DashboardNavbar = () => {
     useEffect(() => {
         const getTypeOfUser = async () => {
           try {
-            const token = localStorage.getItem('token'); // Pretpostavljam da čuvaš token u localStorage
+            const token = localStorage.getItem('token'); 
             if (token) {
-                // Dekodiraj token da bi dobio podatke o korisniku
+                
                 const decodedToken = jwtDecode(token);
               
                 const userDataFromToken = JSON.parse(decodedToken.sub);
@@ -59,14 +59,14 @@ const DashboardNavbar = () => {
                         <Link to="/user-data" className="nav-link">User data</Link>
                     </div>
                 )}
-                {typeOfUser === 1 && (
+                {typeOfUser === 2 && (
                     <div>
                         <Link to="/drivers-rides" className="nav-link">My rides</Link>
                         <Link to="/new-rides" className="nav-link">New rides</Link>
                         <Link to="/user-data" className="nav-link">User data</Link>
                     </div>
                 )}
-                {typeOfUser === 2 && (
+                {typeOfUser === 1 && (
                     <div>
                         <Link to="/create-ride" className="nav-link">Create a ride</Link>
                         <Link to="/rides-history" className="nav-link">Ride history</Link>

@@ -1,0 +1,44 @@
+.ride-table-container {
+    margin: 60px auto;
+    width: 80%;
+    padding: 10px;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    
+}
+
+.ride-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ride-table th,
+.ride-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.ride-table th {
+    background-color: gray;
+    color: white;
+}
+
+.accept-btn {
+    background-color: #28a745;
+    color: white;
+    width:  40%;
+    padding: 8px 12px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+
+.accept-btn:hover {
+    background-color: #218838;
+}
+

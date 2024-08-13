@@ -3,9 +3,11 @@ import React, {useState} from "react";
 import { toast, ToastContainer  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+
 const LogInPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [userType, setUserType] = useState(-1);
     const navigate = useNavigate();
     const handleFacebookLogin = () => {
         window.location.href = `https://www.facebook.com/v8.0/dialog/oauth?client_id=461062726838179&redirect_uri=http://localhost:3000/&response_type=code&scope=email,public_profile`;
@@ -32,7 +34,9 @@ const LogInPage = () => {
                  
                 localStorage.setItem('token', data.token);
                 
+                
                 navigate('/dashboard')
+              
               
             } else {
                 toast.error(data.error, {
