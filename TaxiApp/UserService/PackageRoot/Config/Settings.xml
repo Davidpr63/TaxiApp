@@ -18,6 +18,7 @@
 		<Parameter Name="DriversVerificationTable" Value="DriversVerification" />
 		<Parameter Name="UsersTable" Value="users" />
 		<Parameter Name="BlobContainer" Value="userimages" />
+		<Parameter Name="RidesTable" Value="rides" />
 		
 	</Section>
 	<Section Name="AzureStorageQueue">
@@ -30,5 +31,9 @@
 		<Parameter Name="ApproveDriverResponseQueueName" Value="approve-driver-response-queue" />
 		<Parameter Name="RejectRequestQueueName" Value="reject-request-queue" />
 		<Parameter Name="RejectRequestResponseQueueName" Value="reject-request-response-queue" />
+		<Parameter Name="RideQueueName" Value="ride-queue" />
+		<Parameter Name="CreateRideResponseQueueName" Value="create-ride-response-queue" />
+		<Parameter Name="AcceptRideQueueName" Value="accept-ride-queue" />
+		<Parameter Name="AcceptRideResponseQueueName" Value="accept-ride-response-queue" />
 	</Section>
 </Settings>

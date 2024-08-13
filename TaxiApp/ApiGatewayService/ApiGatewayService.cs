@@ -39,8 +39,9 @@ namespace ApiGatewayService
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         builder.Services.AddSingleton<TableStorageService>();
                         builder.Services.AddSingleton<BlobStorageService>();
-                        builder.Services.AddSingleton<DriversVerificationTableStorage>();
                         
+                        builder.Services.AddSingleton<DriversVerificationTableStorage>();
+                        builder.Services.AddSingleton<RidesTableStorage>();
                         //builder.Services.AddSingleton<IAuthentication>(provider =>
                         //{
                         //    var serviceUri = new Uri("fabric:/TaxiApp/AuthenticationService");
@@ -97,6 +98,8 @@ namespace ApiGatewayService
                             return new UpdateUserResponseQueue(connectionString, queueName);
                         });
                         builder.Services.AddSingleton<DriverApplicationQueueService>();
+                        builder.Services.AddSingleton<RideQueueService>();
+                        
                         builder.Services.AddSingleton(new TokenGenerateService(
                                     builder.Configuration["Jwt:Secret"],
                                     builder.Configuration["Jwt:Issuer"],

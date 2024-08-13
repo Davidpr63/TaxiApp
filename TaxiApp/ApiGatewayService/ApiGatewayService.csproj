@@ -32,4 +32,8 @@
     <ProjectReference Include="..\AuthenticationService\AuthenticationService.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
+
 </Project>

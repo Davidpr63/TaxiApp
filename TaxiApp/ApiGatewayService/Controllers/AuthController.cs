@@ -109,7 +109,7 @@ namespace ApiGatewayService.Controllers
             {
                 await _loginQueueService.QueueLoginUserAsync(user);
                 User LoggedInUser = new User();
-             
+               
                 await LoadData();
                 LoggedInUser = allUsers.FirstOrDefault(x => x.Email == user.Email);
 

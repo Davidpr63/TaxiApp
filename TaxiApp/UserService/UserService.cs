@@ -20,6 +20,8 @@ using UserService.IUserService;
 using UserService.Models;
 using UserService.QueueUserServiceCommunication;
 using static System.Fabric.FabricClient;
+using UserService.DTOmodels;
+using Azure.Storage.Blobs.Models;
 
 namespace UserService
 {
@@ -32,15 +34,22 @@ namespace UserService
         private readonly QueueClient _driversVerificationQueue;
         private readonly QueueClient _approveDriverQueue;
         private readonly QueueClient _rejectRequestQueue;
+        private readonly QueueClient _createRideQueue;
+        private readonly QueueClient _acceptRideQueue;
         private readonly UpdateUserResponseQueueService _updateUserResponseQueueService;
         private readonly ApproveDriverResponseQueueService _approveDriverResponseQueueService;
         private readonly RejectRequestResponseQueueService _rejectRequestResponseQueueService;
+        private readonly CreateRideResponseQueueService _createRideResponseQueueService;
+        private readonly AcceptRideResposneQueueService _acceptRideResponseQueueService;
         private BlobStorageService _blobStorageService;
         private TableStorageService _tableStorageService;
         private DriversVerificationTableStorage _driversVerificationTableStorage;
+        private RidesTableStorage _ridesTableStorage;
         private DriversVerificationResponseQueueService _driversVerificationResponseQueueService;
         private List<DriverVerification> allVerifications = new List<DriverVerification>();
         private List<User> allUsers = new List<User>();
+        private List<Ride> allRides = new List<Ride>();
+
         public UserService(StatefulServiceContext context)
             : base(context) 
         {
@@ -55,16 +64,21 @@ namespace UserService
                 string approveDriverResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["ApproveDriverResponseQueueName"].Value;
                 string rejectRequestQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RejectRequestQueueName"].Value;
                 string rejectRequestResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RejectRequestResponseQueueName"].Value;
-
+                string rideQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RideQueueName"].Value;
+                string createRideResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["CreateRideResponseQueueName"].Value;
+                string AcceptRideQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["AcceptRideQueueName"].Value;
+                string AcceptRideResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["AcceptRideResponseQueueName"].Value;
             #endregion
 
             #region table&blob storage
-            string blobContainerName = settings.Settings.Sections["AzureStorage"].Parameters["BlobContainer"].Value;
-            string tableName = settings.Settings.Sections["AzureStorage"].Parameters["UsersTable"].Value;
-            string driversVerificationtableName = settings.Settings.Sections["AzureStorage"].Parameters["DriversVerificationTable"].Value;
-            _blobStorageService = new BlobStorageService(connectionString, blobContainerName);
-            _tableStorageService = new TableStorageService(connectionString, tableName);
-            _driversVerificationTableStorage = new DriversVerificationTableStorage(connectionString, driversVerificationtableName);
+                string blobContainerName = settings.Settings.Sections["AzureStorage"].Parameters["BlobContainer"].Value;
+                string tableName = settings.Settings.Sections["AzureStorage"].Parameters["UsersTable"].Value;
+                string driversVerificationtableName = settings.Settings.Sections["AzureStorage"].Parameters["DriversVerificationTable"].Value;
+                string RidesTableName = settings.Settings.Sections["AzureStorage"].Parameters["RidesTable"].Value;
+                _blobStorageService = new BlobStorageService(connectionString, blobContainerName);
+                _tableStorageService = new TableStorageService(connectionString, tableName);
+                _driversVerificationTableStorage = new DriversVerificationTableStorage(connectionString, driversVerificationtableName);
+                _ridesTableStorage = new RidesTableStorage(connectionString, RidesTableName);
             #endregion
 
             _updateUserQueue = new QueueClient(connectionString, UpdateUserQueueName);
@@ -75,11 +89,17 @@ namespace UserService
             _approveDriverQueue.CreateIfNotExists();
             _rejectRequestQueue = new QueueClient(connectionString, rejectRequestQueueName);
             _rejectRequestQueue.CreateIfNotExists();
+            _createRideQueue = new QueueClient(connectionString, rideQueueName);
+            _createRideQueue.CreateIfNotExists();
+            _acceptRideQueue = new QueueClient(connectionString, AcceptRideQueueName);
+            _acceptRideQueue.CreateIfNotExists();
 
             _updateUserResponseQueueService = new UpdateUserResponseQueueService(connectionString, UpdateUserResponseQueueName);
             _driversVerificationResponseQueueService = new DriversVerificationResponseQueueService(connectionString, DriverVerificationResponseQueueName);
             _approveDriverResponseQueueService = new ApproveDriverResponseQueueService(connectionString, approveDriverResponseQueueName);
             _rejectRequestResponseQueueService = new RejectRequestResponseQueueService(connectionString, rejectRequestResponseQueueName);
+            _createRideResponseQueueService = new CreateRideResponseQueueService(connectionString, createRideResponeQueueName);
+            _acceptRideResponseQueueService = new AcceptRideResposneQueueService(connectionString, AcceptRideResponeQueueName);
             
 
             Task.Run(() => ProcessQueueMessagesAsync());
@@ -94,6 +114,8 @@ namespace UserService
                     QueueMessage[] DVQueueMessages = await _driversVerificationQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
                     QueueMessage[] ADQueueMessages = await _approveDriverQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
                     QueueMessage[] RRQueueMessages = await _rejectRequestQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    QueueMessage[] CRQueueMessages = await _createRideQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    QueueMessage[] ARQueueMessages = await _acceptRideQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
 
 
                     if (UpdateUserQueueMessages.Length > 0)
@@ -136,6 +158,27 @@ namespace UserService
                             await _rejectRequestQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                         }
                     }
+                    if (CRQueueMessages.Length > 0)
+                    {
+                        foreach (QueueMessage message in CRQueueMessages)
+                        {
+
+                            var newRide = JsonConvert.DeserializeObject<RideDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            await HandleARide(newRide);
+                            await _createRideQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                        }
+                    }
+                    if (ARQueueMessages.Length > 0)
+                    {
+                        foreach (QueueMessage message in ARQueueMessages)
+                        {
+
+                            var acceptRide = JsonConvert.DeserializeObject<AcceptRideDataDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            await AcceptRide(acceptRide);
+                            await _acceptRideQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                        }
+                    }
+
 
                 }
                 catch (Exception ex)
@@ -336,13 +379,68 @@ namespace UserService
 
             try
             {
-                // Slanje email poruke
+                
                 client.Send(message);
                 Console.WriteLine("Email sent successfully.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error sending email: " + ex.Message);
+            }
+        }
+        public async Task HandleARide(RideDTO rideDto)
+        {
+            try
+            {
+                await LoadData();
+                int rowKey = 0;
+                if (allRides.Count == 0)
+                {
+                    rowKey = 1;
+                }
+                else
+                    rowKey = allRides.Count + 1;
+                Ride newRIde = new Ride()
+                {
+                    RowKey = rowKey.ToString(),
+                    PickupAddress = rideDto.PickupAddress,
+                    DropOffAddress = rideDto.DropOffAddress,
+                    RandomTime = rideDto.RandomTime,
+                    RandomPrice = rideDto.RandomPrice,
+                    UserId = rideDto.UserId,
+                    DriverId = -1,
+                    IsActive = true
+                };
+                await _ridesTableStorage.CreateRideAsync(newRIde);
+                await _createRideResponseQueueService.CreateRideResponseAsync("success");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error Handle a ride : " + e.Message);
+                throw;
+            }
+        }
+        public async Task AcceptRide(AcceptRideDataDTO Dto)
+        {
+            try
+            {
+                await LoadData();
+                Ride ride = allRides.FirstOrDefault(x => x.RowKey == Dto.RideId);
+                ride.IsActive = false;
+                ride.DriverId = Int32.Parse(Dto.DriverId);
+                if (ride != null)
+                {
+                    await _ridesTableStorage.UpdateRideAsync(ride);
+                    await _acceptRideResponseQueueService.AcceptRideResponseAsync("success");
+                }
+                else
+                    await _acceptRideResponseQueueService.AcceptRideResponseAsync("Accept a ride failed");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error accept a ride : " + e.Message);
+                throw;
             }
         }
         public string HashPassword(string password)
@@ -391,6 +489,7 @@ namespace UserService
             {
                 allUsers = await _tableStorageService.RetrieveAllUsersAsync();
                 allVerifications = await _driversVerificationTableStorage.RetrieveAllVerificationsAsync();
+                allRides = await _ridesTableStorage.RetrieveAllRidesAsync();
             }
             catch (Exception)
             {
@@ -399,6 +498,6 @@ namespace UserService
             }
         }
 
-      
+    
     }
 }
