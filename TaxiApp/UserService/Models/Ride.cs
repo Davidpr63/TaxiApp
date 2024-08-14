@@ -13,6 +13,9 @@ namespace UserService.Models
         public string? UserId { get; set; }
         public int? DriverId { get; set; }
         public bool? IsActive { get; set; }
+        public bool? IsAccepted { get; set; }
+        
+    
         public string? PartitionKey { get ; set ; }
        
         public DateTimeOffset? Timestamp { get ; set ; }

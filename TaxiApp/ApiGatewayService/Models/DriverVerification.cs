@@ -10,6 +10,11 @@ namespace ApiGatewayService.Models
         public string? DriversLastname { get; set; }
         public string? DriversEmail { get; set; }
         public string? VerificationStatus { get; set; }
+        public int? NumberOfRide { get; set; }
+        public double? AverageRating { get; set; }
+
+        public int? SumOfRating { get; set; }
+        public bool? IsBlocked { get; set; }
         public string? PartitionKey { get; set; }
         public string? RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
@@ -19,6 +24,10 @@ namespace ApiGatewayService.Models
         {
             PartitionKey = "DriversVerification";
             RowKey = "";
+        }
+        public double? CalculateAverage(int? sum, int? numberOfRide)
+        {
+            return sum / numberOfRide;
         }
     }
 }

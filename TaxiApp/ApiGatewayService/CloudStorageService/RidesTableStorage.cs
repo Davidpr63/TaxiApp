@@ -31,7 +31,7 @@ namespace ApiGatewayService.CloudStorageService
             await _tableClient.UpdateEntityAsync(driver, ETag.All);
         }
 
-        public async Task<List<Ride>> RetrieveAllRidesAsync()
+        public async Task<List<Ride>> RetrieveAllRidesCustomAsync()
         {
             var rides = new List<Ride>();
             await foreach (var ride in _tableClient.QueryAsync<Ride>())
@@ -41,6 +41,19 @@ namespace ApiGatewayService.CloudStorageService
                     rides.Add(ride);
                 }
                 
+            }
+            return rides;
+        }
+        public async Task<List<Ride>> RetrieveAllRidesAsync()
+        {
+            var rides = new List<Ride>();
+            await foreach (var ride in _tableClient.QueryAsync<Ride>())
+            {
+  
+                
+                    rides.Add(ride);
+              
+
             }
             return rides;
         }

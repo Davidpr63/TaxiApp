@@ -17,5 +17,9 @@ namespace UserService.IUserService
         Task SendEmail(string toEmail, string text);
         Task HandleARide(RideDTO rideDto);
         Task AcceptRide(AcceptRideDataDTO Dto);
+        Task DriverRating(DriverRatingDTO Dto);
+        Task BlockDriver(string id);
+        Task UnBlockDriver(string id);
+    
     }
 }

@@ -97,7 +97,7 @@ namespace ApiGatewayService
 
                             return new UpdateUserResponseQueue(connectionString, queueName);
                         });
-                        builder.Services.AddSingleton<DriverApplicationQueueService>();
+                        builder.Services.AddSingleton<DriverQueueService>();
                         builder.Services.AddSingleton<RideQueueService>();
                         
                         builder.Services.AddSingleton(new TokenGenerateService(

@@ -22,6 +22,8 @@ using UserService.QueueUserServiceCommunication;
 using static System.Fabric.FabricClient;
 using UserService.DTOmodels;
 using Azure.Storage.Blobs.Models;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using System.Reflection.Metadata;
 
 namespace UserService
 {
@@ -36,11 +38,17 @@ namespace UserService
         private readonly QueueClient _rejectRequestQueue;
         private readonly QueueClient _createRideQueue;
         private readonly QueueClient _acceptRideQueue;
+        private readonly QueueClient _driverRatingQueue;
+        private readonly QueueClient _blockDriverQueue;
+        private readonly QueueClient _unBlockDriverQueue;
         private readonly UpdateUserResponseQueueService _updateUserResponseQueueService;
         private readonly ApproveDriverResponseQueueService _approveDriverResponseQueueService;
         private readonly RejectRequestResponseQueueService _rejectRequestResponseQueueService;
         private readonly CreateRideResponseQueueService _createRideResponseQueueService;
         private readonly AcceptRideResposneQueueService _acceptRideResponseQueueService;
+        private readonly DriverRatingResponseQueueService _driverRatingResponseQueueService;
+        private readonly BlockDriverResponseQueueService _blockDriverResponseQueueService;
+        private readonly UnBlockDriverResponseQueueService _unBlockDriverResponseQueueService;
         private BlobStorageService _blobStorageService;
         private TableStorageService _tableStorageService;
         private DriversVerificationTableStorage _driversVerificationTableStorage;
@@ -54,7 +62,7 @@ namespace UserService
             : base(context) 
         {
             var settings = context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
-            #region QueueStorage
+            #region QueueStorageName
                 string connectionString = settings.Settings.Sections["AzureStorageQueue"].Parameters["StorageConnectionString"].Value;
                 string UpdateUserQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["UpdateUserQueueName"].Value;
                 string DriverVerificationQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["DriversVerificationQueueName"].Value;
@@ -68,6 +76,13 @@ namespace UserService
                 string createRideResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["CreateRideResponseQueueName"].Value;
                 string AcceptRideQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["AcceptRideQueueName"].Value;
                 string AcceptRideResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["AcceptRideResponseQueueName"].Value;
+                string DriverRatingQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["DriverRatingQueueName"].Value;
+                string DriverRatingResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["DriverRatingResponseQueueName"].Value;
+                string BlockDriverQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["BlockDriverQueueName"].Value;
+                string BlockDriverResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["BlockDriverResponseQueueName"].Value;
+                string UnBlockDriverQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["UnBlockDriverQueueName"].Value;
+                string UnBlockDriverResponeQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["UnBlockDriverResponseQueueName"].Value;
+
             #endregion
 
             #region table&blob storage
@@ -80,27 +95,38 @@ namespace UserService
                 _driversVerificationTableStorage = new DriversVerificationTableStorage(connectionString, driversVerificationtableName);
                 _ridesTableStorage = new RidesTableStorage(connectionString, RidesTableName);
             #endregion
+            #region Create Qs
+                _updateUserQueue = new QueueClient(connectionString, UpdateUserQueueName);
+                _updateUserQueue.CreateIfNotExists();
+                _driversVerificationQueue = new QueueClient(connectionString, DriverVerificationQueueName);
+                _driversVerificationQueue.CreateIfNotExists();
+                _approveDriverQueue = new QueueClient(connectionString, approveDriverQueueName);
+                _approveDriverQueue.CreateIfNotExists();
+                _rejectRequestQueue = new QueueClient(connectionString, rejectRequestQueueName);
+                _rejectRequestQueue.CreateIfNotExists();
+                _createRideQueue = new QueueClient(connectionString, rideQueueName);
+                _createRideQueue.CreateIfNotExists();
+                _acceptRideQueue = new QueueClient(connectionString, AcceptRideQueueName);
+                _acceptRideQueue.CreateIfNotExists();
+                _driverRatingQueue = new QueueClient(connectionString, DriverRatingQueueName);
+                _driverRatingQueue.CreateIfNotExists();
+                _blockDriverQueue = new QueueClient(connectionString, BlockDriverQueueName);
+                _blockDriverQueue.CreateIfNotExists();
+                _unBlockDriverQueue = new QueueClient(connectionString, UnBlockDriverQueueName);
+                _unBlockDriverQueue.CreateIfNotExists();
 
-            _updateUserQueue = new QueueClient(connectionString, UpdateUserQueueName);
-            _updateUserQueue.CreateIfNotExists();
-            _driversVerificationQueue = new QueueClient(connectionString, DriverVerificationQueueName);
-            _driversVerificationQueue.CreateIfNotExists();
-            _approveDriverQueue = new QueueClient(connectionString, approveDriverQueueName);
-            _approveDriverQueue.CreateIfNotExists();
-            _rejectRequestQueue = new QueueClient(connectionString, rejectRequestQueueName);
-            _rejectRequestQueue.CreateIfNotExists();
-            _createRideQueue = new QueueClient(connectionString, rideQueueName);
-            _createRideQueue.CreateIfNotExists();
-            _acceptRideQueue = new QueueClient(connectionString, AcceptRideQueueName);
-            _acceptRideQueue.CreateIfNotExists();
 
-            _updateUserResponseQueueService = new UpdateUserResponseQueueService(connectionString, UpdateUserResponseQueueName);
-            _driversVerificationResponseQueueService = new DriversVerificationResponseQueueService(connectionString, DriverVerificationResponseQueueName);
-            _approveDriverResponseQueueService = new ApproveDriverResponseQueueService(connectionString, approveDriverResponseQueueName);
-            _rejectRequestResponseQueueService = new RejectRequestResponseQueueService(connectionString, rejectRequestResponseQueueName);
-            _createRideResponseQueueService = new CreateRideResponseQueueService(connectionString, createRideResponeQueueName);
-            _acceptRideResponseQueueService = new AcceptRideResposneQueueService(connectionString, AcceptRideResponeQueueName);
-            
+                _updateUserResponseQueueService = new UpdateUserResponseQueueService(connectionString, UpdateUserResponseQueueName);
+                _driversVerificationResponseQueueService = new DriversVerificationResponseQueueService(connectionString, DriverVerificationResponseQueueName);
+                _approveDriverResponseQueueService = new ApproveDriverResponseQueueService(connectionString, approveDriverResponseQueueName);
+                _rejectRequestResponseQueueService = new RejectRequestResponseQueueService(connectionString, rejectRequestResponseQueueName);
+                _createRideResponseQueueService = new CreateRideResponseQueueService(connectionString, createRideResponeQueueName);
+                _acceptRideResponseQueueService = new AcceptRideResposneQueueService(connectionString, AcceptRideResponeQueueName);
+                _driverRatingResponseQueueService = new DriverRatingResponseQueueService(connectionString, DriverRatingResponeQueueName);
+                _blockDriverResponseQueueService = new BlockDriverResponseQueueService(connectionString, BlockDriverResponeQueueName);
+                _unBlockDriverResponseQueueService = new UnBlockDriverResponseQueueService(connectionString, UnBlockDriverResponeQueueName);
+            #endregion
+
 
             Task.Run(() => ProcessQueueMessagesAsync());
         }
@@ -116,6 +142,9 @@ namespace UserService
                     QueueMessage[] RRQueueMessages = await _rejectRequestQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
                     QueueMessage[] CRQueueMessages = await _createRideQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
                     QueueMessage[] ARQueueMessages = await _acceptRideQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    QueueMessage[] DRQueueMessages = await _driverRatingQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    QueueMessage[] BDRQueueMessages = await _blockDriverQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
+                    QueueMessage[] UBDRQueueMessages = await _unBlockDriverQueue.ReceiveMessagesAsync(maxMessages: 10, visibilityTimeout: TimeSpan.FromSeconds(30));
 
 
                     if (UpdateUserQueueMessages.Length > 0)
@@ -176,6 +205,36 @@ namespace UserService
                             var acceptRide = JsonConvert.DeserializeObject<AcceptRideDataDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
                             await AcceptRide(acceptRide);
                             await _acceptRideQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                        }
+                    }
+                    if (DRQueueMessages.Length > 0)
+                    {
+                        foreach (QueueMessage message in DRQueueMessages)
+                        {
+
+                            var driverRating = JsonConvert.DeserializeObject<DriverRatingDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            await DriverRating(driverRating);
+                            await _driverRatingQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                        }
+                    }
+                    if (BDRQueueMessages.Length > 0)
+                    {
+                        foreach (QueueMessage message in BDRQueueMessages)
+                        {
+
+                            var blockDriverId = JsonConvert.DeserializeObject<string>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            await BlockDriver(blockDriverId);
+                            await _blockDriverQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+                        }
+                    }
+                    if (UBDRQueueMessages.Length > 0)
+                    {
+                        foreach (QueueMessage message in UBDRQueueMessages)
+                        {
+
+                            var unblockDriverId = JsonConvert.DeserializeObject<string>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            await UnBlockDriver(unblockDriverId);
+                            await _unBlockDriverQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                         }
                     }
 
@@ -286,9 +345,13 @@ namespace UserService
                         DriversName = user.Firstname,
                         DriversLastname = user.Lastname,
                         UserId = user.RowKey,
-                        VerificationStatus = "In process"
-                        
-                        
+                        VerificationStatus = "In process",
+                        NumberOfRide = 0,
+                        AverageRating = 0,
+                        SumOfRating = 0,
+                        IsBlocked = false
+
+
                     };
                     user.VerifcationStatus = "In process";
                     await _tableStorageService.UpdateUserAsync(user);
@@ -409,7 +472,8 @@ namespace UserService
                     RandomPrice = rideDto.RandomPrice,
                     UserId = rideDto.UserId,
                     DriverId = -1,
-                    IsActive = true
+                    IsActive = true,
+                    IsAccepted = false
                 };
                 await _ridesTableStorage.CreateRideAsync(newRIde);
                 await _createRideResponseQueueService.CreateRideResponseAsync("success");
@@ -425,16 +489,21 @@ namespace UserService
             try
             {
                 await LoadData();
-                Ride ride = allRides.FirstOrDefault(x => x.RowKey == Dto.RideId);
-                ride.IsActive = false;
-                ride.DriverId = Int32.Parse(Dto.DriverId);
-                if (ride != null)
+                Ride? ride = allRides.FirstOrDefault(x => x.RowKey == Dto.RideId);
+                DriverVerification? driver = allVerifications.FirstOrDefault(x => x.UserId == Dto.DriverId);
+                
+                if (ride != null && !driver.VerificationStatus.Equals("Blocked"))
                 {
+                    ride.IsActive = true;
+                    ride.DriverId = Int32.Parse(Dto.DriverId);
+                    ride.IsAccepted = true;
+                    driver.NumberOfRide++;
+                    await _driversVerificationTableStorage.UpdateVerificationAsync(driver);
                     await _ridesTableStorage.UpdateRideAsync(ride);
                     await _acceptRideResponseQueueService.AcceptRideResponseAsync("success");
                 }
                 else
-                    await _acceptRideResponseQueueService.AcceptRideResponseAsync("Accept a ride failed");
+                    await _acceptRideResponseQueueService.AcceptRideResponseAsync("You cannot accept the ride, because you are blocked");
 
             }
             catch (Exception e)
@@ -442,6 +511,113 @@ namespace UserService
                 Console.WriteLine("Error accept a ride : " + e.Message);
                 throw;
             }
+        }
+        public async Task DriverRating(DriverRatingDTO Dto)
+        {
+            try
+            {
+                
+                await LoadData();
+                Ride ride = allRides.FirstOrDefault(x => x.IsAccepted == true && x.IsActive == false && Dto.UserId == x.UserId);
+                if (ride != null)
+                {
+                    DriverVerification driver = allVerifications.FirstOrDefault(x => x.UserId == ride.DriverId.ToString());
+                    if (driver != null)
+                    {
+                        if (driver.SumOfRating == null)
+                        {
+                            driver.SumOfRating = 0;
+                        }
+                        driver.SumOfRating += Dto.Rating;
+                        driver.AverageRating = CalculateAverageRating(driver.SumOfRating, driver.NumberOfRide);
+                        await _driversVerificationTableStorage.UpdateVerificationAsync(driver);
+                        await _driverRatingResponseQueueService.DriverRatingResponseAsync("success");
+                    }
+                }
+                else
+                    await _driverRatingResponseQueueService.DriverRatingResponseAsync("rate a driver - error");
+
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error accept a ride : " + e.Message);
+                throw;
+            }
+        }
+        public async Task BlockDriver(string id)
+        {
+            try
+            {
+                await LoadData();
+                User user = allUsers.FirstOrDefault(x => x.RowKey == id);
+                DriverVerification verification = allVerifications.FirstOrDefault(x => x.UserId == id);
+                if (verification != null && user != null)
+                {
+                    user.VerifcationStatus = "Blocked";
+                    user.TypeOfUser = TypeOfUser.Driver;
+                    verification.VerificationStatus = "Blocked";
+                    await _tableStorageService.UpdateUserAsync(user);
+                    await _driversVerificationTableStorage.UpdateVerificationAsync(verification);
+                   // await SendEmail(user.Email, "You are blocked and you cannot longer accept rides");
+                    await _blockDriverResponseQueueService.BlockDriverResponseAsync("success");
+                }
+                else
+                    await _blockDriverResponseQueueService.BlockDriverResponseAsync("error - blocked driver");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
+        }
+
+        public async Task UnBlockDriver(string id)
+        {
+            try
+            {
+                await LoadData();
+                User user = allUsers.FirstOrDefault(x => x.RowKey == id);
+                DriverVerification verification = allVerifications.FirstOrDefault(x => x.UserId == id);
+                if (verification != null && user != null)
+                {
+                    user.VerifcationStatus = "Approved";
+                    user.TypeOfUser = TypeOfUser.Driver;
+                    verification.VerificationStatus = "Approved";
+                    await _tableStorageService.UpdateUserAsync(user);
+                    await _driversVerificationTableStorage.UpdateVerificationAsync(verification);
+                    //await SendEmail(user.Email, "You are unblocked and you can to accept rides again");
+                    await _unBlockDriverResponseQueueService.UnBlockDriverResponseAsync("success");
+                }
+                else
+                    await _unBlockDriverResponseQueueService.UnBlockDriverResponseAsync("error - unblocked driver");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
+        }
+        public double CalculateAverageRating(int? sum, int? numOfRating)
+        {
+            try
+            {
+                if (numOfRating != 0)
+                {
+                    return (double)sum / (double)numOfRating;
+                }
+                else
+                    return 0.0;
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
+           
         }
         public string HashPassword(string password)
         {
@@ -468,7 +644,7 @@ namespace UserService
             }
 
         }
-        
+      
         public bool ExistUser(string email)
         {
             bool result = false;
@@ -498,6 +674,53 @@ namespace UserService
             }
         }
 
-    
+       
+
+
+        //protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
+        //{
+        //    return this.CreateServiceRemotingReplicaListeners();
+        //}
+        //protected override async Task RunAsync(CancellationToken cancellationToken)
+        //{
+        //    // TODO: Replace the following sample code with your own logic 
+        //    //       or remove this RunAsync override if it's not needed in your service.
+
+        //    var myDictionary = await this.StateManager.GetOrAddAsync<IReliableDictionary<string, long>>("myDictionary");
+
+        //    while (true)
+        //    {
+        //        cancellationToken.ThrowIfCancellationRequested();
+
+        //        using (var tx = this.StateManager.CreateTransaction())
+        //        {
+        //            var result = await myDictionary.TryGetValueAsync(tx, "Counter");
+
+        //            ServiceEventSource.Current.ServiceMessage(this.Context, "Current Counter Value: {0}",
+        //                result.HasValue ? result.Value.ToString() : "Value does not exist.");
+
+        //            await myDictionary.AddOrUpdateAsync(tx, "Counter", 0, (key, value) => ++value);
+
+        //            // If an exception is thrown before calling CommitAsync, the transaction aborts, all changes are 
+        //            // discarded, and nothing is saved to the secondary replicas.
+        //            await tx.CommitAsync();
+        //        }
+
+        //        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        //    }
+        //}
+        //public async Task DriverRating(DriverRatingDTO rate)
+        //{
+        //    try
+        //    {
+        //        Console.WriteLine("dasd");
+        //    }
+        //    catch (Exception e)
+        //    {
+
+        //        throw;
+        //    }
+        //}
+
     }
 }

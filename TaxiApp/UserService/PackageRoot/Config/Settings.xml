@@ -35,5 +35,11 @@
 		<Parameter Name="CreateRideResponseQueueName" Value="create-ride-response-queue" />
 		<Parameter Name="AcceptRideQueueName" Value="accept-ride-queue" />
 		<Parameter Name="AcceptRideResponseQueueName" Value="accept-ride-response-queue" />
+		<Parameter Name="DriverRatingQueueName" Value="driver-rating-queue" />
+		<Parameter Name="DriverRatingResponseQueueName" Value="driver-rating-response-queue" />
+		<Parameter Name="BlockDriverQueueName" Value="block-driver-queue" />
+		<Parameter Name="BlockDriverResponseQueueName" Value="block-driver-response-queue" />
+		<Parameter Name="UnBlockDriverQueueName" Value="un-block-driver-queue" />
+		<Parameter Name="UnBlockDriverResponseQueueName" Value="un-block-driver-response-queue" />
 	</Section>
 </Settings>

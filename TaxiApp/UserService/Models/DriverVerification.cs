@@ -11,6 +11,10 @@ namespace UserService.Models
         public string? DriversEmail { get; set; }
         public string? PartitionKey { get; set; }
         public string? VerificationStatus { get; set; }
+        public int? NumberOfRide { get; set; }
+        public double? AverageRating { get; set; }
+        public bool? IsBlocked { get; set; }
+        public int? SumOfRating { get; set; }
         public string? RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }

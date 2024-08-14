@@ -11,14 +11,15 @@ namespace ApiGatewayService.Models
         public string? RandomTime { get; set; }
         public int? RandomPrice { get; set; }
         public string? UserId { get; set; }
-        public string? DriverId { get; set; }
+        public int? DriverId { get; set; }
         public bool? IsActive { get; set; }
+        public bool? IsAccepted { get; set; }
         public string? PartitionKey { get ; set ; }
        
         public DateTimeOffset? Timestamp { get ; set ; }
         public ETag ETag { get ; set ; }
 
-        public Ride()
+       public Ride()
         {
             PartitionKey = "RidesTable";
             RowKey = "";
