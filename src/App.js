@@ -6,6 +6,9 @@ import VerificationPage from './Components/VerificationsPage';
 import AdminPage from './Components/AdminPage';
 import DriverPage from './Components/DriverPage';
 import UserPage from './Components/UserPage';
+import PreviousRides from './Components/PreviousRides';
+import DriversRides from './Components/DriversRides';
+import AllRides from './Components/AllRides';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 
@@ -34,8 +37,9 @@ function App() {
             <Route path="/register" element={<RegistrationPage />} />
             <Route path="/user-data" element={<UserDataPage />} />
             <Route path="/verifications" element={<VerificationPage />} />
-            <Route path="/new-rides" element={<DriverPage />} />
-            <Route path="/create-ride" element={<UserPage />} />
+            <Route path="/rides-history" element={<PreviousRides />} />
+            <Route path="/drivers-rides" element={<DriversRides />} />
+            <Route path="/all-rides" element={<AllRides />} />
           </Routes>
            
         </div>

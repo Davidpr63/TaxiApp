@@ -222,6 +222,186 @@ const apiService = {
       console.error('Error: ordering ride:', error);
       throw error;
     }
+  },
+  GetRideStatus: async (userId) => {
+    try {
+     
+      const dataForBack = {
+        userId
+      };
+      console.log('api dataforback - ', dataForBack)
+      const response = await fetch(`${apiUrl}/api/user/check-ride-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: ordering ride:', error);
+      throw error;
+    }
+  },
+  SubmitDriverRating: async (userId, rating) => {
+    try {
+      
+      const dataForBack = {
+        userId,
+        rating
+      };
+    
+      console.log('api dataforback - ', dataForBack)
+      const response = await fetch(`${apiUrl}/api/user/driver-rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: ordering ride:', error);
+      throw error;
+    }
+  },
+  BlockDriver: async (userId) => {
+    try {
+      
+      const dataForBack = {
+        userId
+       
+      };
+    
+      console.log('api dataforback - ', dataForBack)
+      const response = await fetch(`${apiUrl}/api/user/block-driver`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: block user:', error);
+      throw error;
+    }
+  },
+  UnBlockDriver: async (userId) => {
+    try {
+      
+      const dataForBack = {
+        userId
+       
+      };
+    
+      console.log('api dataforback - ', dataForBack)
+      const response = await fetch(`${apiUrl}/api/user/unblock-driver`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: block user:', error);
+      throw error;
+    }
+  },
+  GetAllPreviousRides: async (userId) => {
+    try {
+      const dataForBack = {
+        userId
+      };
+      console.log('Logged in user', userId);
+      const response = await fetch(`${apiUrl}/api/user/get-previous-rides`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: fetching previous rides:', error);
+      throw error;
+    }
+  },
+  GetAllDriversRides: async (userId) => {
+    try {
+      const dataForBack = {
+        userId
+      };
+      
+      const response = await fetch(`${apiUrl}/api/user/drivers-rides`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForBack)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: fetching previous rides:', error);
+      throw error;
+    }
+  },
+  GetAllRides: async () => {
+    try {
+      
+      
+      const response = await fetch(`${apiUrl}/api/user/all-rides`, {
+        method: 'GET',
+      
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+  
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error: fetching previous rides:', error);
+      throw error;
+    }
   }
 };
 export default apiService;

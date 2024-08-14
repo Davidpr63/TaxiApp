@@ -255,6 +255,8 @@ function UserDataPage() {
                     ? 'yellow'
                     : userData.verificationStatus === 'Approved'
                     ? 'green'
+                    : userData.verificationStatus === 'Blocked'
+                    ? 'orange'
                     : 'red',
               }}
             >

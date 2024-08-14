@@ -27,7 +27,7 @@
 .approve-btn {
     background-color: #28a745;
     color: white;
-    width:  40%;
+    width:  30%;
     padding: 8px 12px;
     margin-right: 5px;
     border: none;
@@ -38,19 +38,50 @@
 
 .reject-btn {
     background-color: #dc3545;
-    width:  40%;
+    width:  30%;
     color: white;
     padding: 8px 12px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    margin-left: 10px;
     transition: background-color 0.3s ease;
 }
-
+.block-btn {
+    background-color: orange;
+    width:  30%;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.unblock-btn {
+    background-color: green;
+    width:  30%;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    margin-left: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 .approve-btn:hover {
     background-color: #218838;
 }
 
 .reject-btn:hover {
     background-color: #c82333;
+}
+.reject-btn:hover {
+    background-color: orange;
+}
+.unblock-btn:hover {
+    background-color: orange;
+}
+.block-btn:hover {
+    background-color: orange;
 }

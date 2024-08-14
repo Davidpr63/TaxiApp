@@ -52,6 +52,36 @@ const VerificationPage = () => {
             });
         }
     };
+    const BlockUser = async (userId) => {
+        console.log("driver id : ",userId);
+        const response = await apiService.BlockDriver(userId);
+        if (response.success) {
+            console.log('true');
+            toast.success('You have successfully blocked the driver!', {
+                position: 'top-right',
+                autoClose: 2000,  
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+        }
+    };
+    const UnBlockUser = async (userId) => {
+        console.log("driver id : ",userId);
+        const response = await apiService.UnBlockDriver(userId);
+        if (response.success) {
+         
+            toast.success('You have successfully unblocked the driver!', {
+                position: 'top-right',
+                autoClose: 2000,  
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+        }
+    };
     return (
         <div>
            <DasboardNavbar/>
@@ -62,6 +92,7 @@ const VerificationPage = () => {
                         <th>Firstname</th>
                         <th>Lastname</th>
                         <th>Email</th>
+                        <th>Average rating</th>
                         <th>Verification Status</th>
                         <th>Actions</th>
                     </tr>
@@ -72,6 +103,7 @@ const VerificationPage = () => {
                         <td>{user.driversName}</td>
                         <td>{user.driversLastname}</td>
                         <td>{user.driversEmail}</td>
+                        <td>{user.averageRating}</td>
                         <td>
                                     {user.verificationStatus}
                                     {user.verificationStatus === 'Approved' && (
@@ -80,15 +112,25 @@ const VerificationPage = () => {
                                     {user.verificationStatus === 'Rejected' && (
                                         <FontAwesomeIcon icon={faTimesCircle} style={{ color: 'red', marginLeft: '8px' }} />
                                     )}
+                                    
                                 </td>
-                        <td>
-                            {user.verificationStatus !== 'Approved' && user.verificationStatus !== 'Rejected' && (
-                                <>
-                                    <button onClick={() => ApproveUser(user.userId)} className="approve-btn">Approve</button>
-                                    <button onClick={() => RejectUser(user.userId)} className="reject-btn">Reject</button>
-                                </>
-                            )}
-                        </td>
+                                <td>
+                                    {user.verificationStatus === 'In process' && (
+                                        <>
+                                            <button onClick={() => ApproveUser(user.userId)} className="approve-btn">Approve</button>
+                                            <button onClick={() => RejectUser(user.userId)} className="reject-btn">Reject</button>
+                                        </>
+                                    )}
+
+                                    {user.verificationStatus === 'Approved' && (
+                                        <button onClick={() => BlockUser(user.userId)} className="block-btn">Block</button>
+                                    )}
+
+                                    {user.verificationStatus === 'Blocked' && (
+                                        <button onClick={() => UnBlockUser(user.userId)} className="unblock-btn">Unblock</button>
+                                    )}
+                                </td>
+
                         </tr>
                     ))}
                     </tbody>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DasboardNavbar from './DashboardNavbar';
-
+import VerificationPage from './VerificationsPage';
 
 
 const AdminPage = () => {
@@ -10,7 +10,7 @@ const AdminPage = () => {
         <div>
             <DasboardNavbar/>
             <div>
-              <h1>admin</h1>
+              <VerificationPage/>
             </div>
           
         </div>

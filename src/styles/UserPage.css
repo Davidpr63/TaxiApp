@@ -56,6 +56,8 @@
 .form-group .secondary-button:hover {
     background-color: #e03128;
 }
+/* UserPage.css */
+
 .popup {
     position: fixed;
     top: 0;
@@ -69,26 +71,43 @@
 }
 
 .popup-content {
-    background-color: white;
+    background-color: #fff;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.confirm-btn, .cancel-btn {
-    padding: 10px 20px;
-    margin: 10px;
+.rating .star {
+    font-size: 2em;
+    color: #ccc;
     cursor: pointer;
+    transition: color 0.2s;
+}
+
+.rating .star.selected {
+    color: #ffd700;
 }
 
 .confirm-btn {
-    background-color: green;
+    background-color: #4CAF50;
     color: white;
+    padding: 10px 20px;
     border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
 }
-
 .cancel-btn {
     background-color: red;
     color: white;
+    padding: 10px 20px;
     border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.confirm-btn:hover {
+    background-color: #45a049;
 }

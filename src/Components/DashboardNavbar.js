@@ -54,7 +54,7 @@ const DashboardNavbar = () => {
             <div className="navbar-container">
                 {typeOfUser === 0 && (
                     <div>
-                        <Link to="/verifications" className="nav-link">Verifications</Link>
+                        <Link to="/dashboard" className="nav-link">Verifications</Link>
                         <Link to="/all-rides" className="nav-link">All rides</Link>
                         <Link to="/user-data" className="nav-link">User data</Link>
                     </div>
@@ -62,13 +62,13 @@ const DashboardNavbar = () => {
                 {typeOfUser === 2 && (
                     <div>
                         <Link to="/drivers-rides" className="nav-link">My rides</Link>
-                        <Link to="/new-rides" className="nav-link">New rides</Link>
+                        <Link to="/dashboard" className="nav-link">New rides</Link>
                         <Link to="/user-data" className="nav-link">User data</Link>
                     </div>
                 )}
                 {typeOfUser === 1 && (
                     <div>
-                        <Link to="/create-ride" className="nav-link">Create a ride</Link>
+                        <Link to="/dashboard" className="nav-link">Create a ride</Link>
                         <Link to="/rides-history" className="nav-link">Ride history</Link>
                         <Link to="/user-data" className="nav-link">User data</Link>
                     </div>
