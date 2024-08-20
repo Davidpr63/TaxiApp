@@ -39,9 +39,9 @@ function UserDataPage() {
     useEffect(() => {
       const fetchUserData = async () => {
         try {
-          const token = localStorage.getItem('token'); // Pretpostavljam da čuvaš token u localStorage
+          const token = localStorage.getItem('token'); 
           if (token) {
-              // Dekodiraj token da bi dobio podatke o korisniku
+              
               const decodedToken = jwtDecode(token);
               setUser(decodedToken);
               
@@ -61,6 +61,7 @@ function UserDataPage() {
                   imageUrl: userDataFromToken.ImageUrl || '',
                   verificationStatus:userDataFromToken.VerifcationStatus
               });
+              console.log('userdata ->  ',userData);
           } else {
               console.log("Token not found");
           }
@@ -71,11 +72,7 @@ function UserDataPage() {
   
       fetchUserData();
     }, []);
-    useEffect(() => {
-        // Construct the URL for the blob in Azurite
-        const blobUrl = 'http://127.0.0.1:10000/devstoreaccount1/userimages/a2950682-aa5f-4de6-9884-40dc42118880.png';
-        setImageUrl(blobUrl);
-      }, []);
+    
      
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -107,6 +104,19 @@ function UserDataPage() {
       const data = await apiService.updateUser(formData)
       if (data.success) {
           localStorage.setItem('token', data.token);
+          const decodedToken = jwtDecode(data.token);
+          const userDataFromToken = JSON.parse(decodedToken.sub);
+          setUserData({
+            id: userDataFromToken.RowKey,
+            firstname: userDataFromToken.Firstname || '',
+            lastname: userDataFromToken.Lastname || '',
+            username: userDataFromToken.Username || '',
+            email: userDataFromToken.Email || '',
+            dateOfBirth: userDataFromToken.DateOfBirth || '',
+            address: userDataFromToken.Address || '',
+            imageUrl: userDataFromToken.ImageUrl || '',
+            verificationStatus: userDataFromToken.VerifcationStatus
+        });
           toast.success('You have successfully updated your data!', {
           position: 'top-right',
           autoClose: 2000,  

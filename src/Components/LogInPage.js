@@ -3,7 +3,7 @@ import React, {useState} from "react";
 import { toast, ToastContainer  } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-
+import FacebookAuth from './FacebookAuth';
 const LogInPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -74,10 +74,7 @@ const LogInPage = () => {
                 />
                 <button onClick={handleLogin}>Log in</button>
                 <a href="/register">Register first</a>
-                <p>Or Log in with Facebook</p>
-                <button onClick={handleFacebookLogin}>
-                      Login with Facebook
-                </button>
+               
             </div>
             <ToastContainer/>
         </div>

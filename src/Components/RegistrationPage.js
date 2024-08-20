@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate  } from 'react-router-dom';
 import { toast, ToastContainer  } from 'react-toastify';
+import FacebookAuth from './FacebookAuth';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/Register.css'; 
 function RegistrationPage() {
@@ -21,22 +22,22 @@ function RegistrationPage() {
     setImage(e.target.files[0]);
   };
   const handleRegister = () => {
-      console.log(firstname);
-      const formData = new FormData();
-      formData.append('Firstname', firstname);
-      formData.append('Lastname', lastname);
-      formData.append('Username', username);
-      formData.append('Email', email);
-      formData.append('Password', password);
-      formData.append('ConfirmPassword', confirmPassword);
-      formData.append('DateOfBirth', dateofbirth);
-      formData.append('Address', address);
-      formData.append('Image', imageUrl);
-  console.log('slikaa', imageUrl)
-  fetch('http://localhost:8540/api/auth/register', {
-      method: 'POST',
-      body: formData
-  })
+    console.log(firstname);
+    const formData = new FormData();
+    formData.append('Firstname', firstname);
+    formData.append('Lastname', lastname);
+    formData.append('Username', username);
+    formData.append('Email', email);
+    formData.append('Password', password);
+    formData.append('ConfirmPassword', confirmPassword);
+    formData.append('DateOfBirth', dateofbirth);
+    formData.append('Address', address);
+    formData.append('Image', imageUrl);
+    console.log('slikaa', imageUrl)
+    fetch('http://localhost:8540/api/auth/register', {
+        method: 'POST',
+        body: formData
+    })
   .then(response => response.json())
   .then(data => {
       console.log('server response:', data);
@@ -137,7 +138,8 @@ function RegistrationPage() {
           required
         />
         <button onClick={handleRegister}>Register</button>
-        
+        <p>Or</p>
+        <FacebookAuth/>    
       </div>
       <ToastContainer />
     </div>

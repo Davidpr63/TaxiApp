@@ -19,6 +19,15 @@
     align-items: center;
 }
 
+
+.profile-image {
+    width: 30px; /* Širina slike */
+    height: 30px; /* Visina slike */
+    border-radius: 50%; /* Oblik kruga */
+    object-fit: cover; /* Održava proporcije slike unutar kruga */
+    margin-right: 15px; /* Razmak od linkova */
+}
+
 .nav-link {
     color: white;
     text-decoration: none;
