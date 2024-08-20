@@ -36,42 +36,35 @@ namespace AuthenticationService
         private readonly QueueClient _loginQueue;
    
         private readonly LoginResponseQueueService _loginResponseQueue;
+        private readonly RegistrationResponseQueueService _registrationUserResponseQueue;
   
         private TableStorageService _tableStorageService;
-   
+        private BlobStorageService _blobStorageService;
         private List<User> allUsers = new List<User>();
         public AuthenticationService(StatelessServiceContext context)
         : base(context)
         {
-       
-            var settings = context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
-            string connectionString = settings.Settings.Sections["AzureStorageQueue"].Parameters["StorageConnectionString"].Value;
-            string queueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RegistrationQueueName"].Value;
-
-            string loginQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginQueueName"].Value;
-      
-       
-            string tableName = settings.Settings.Sections["AzureStorage"].Parameters["UsersTable"].Value;
-          
-
-            string loginResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginResponseQueueName"].Value; 
-
-            
-
+            #region Q name
+                var settings = context.CodePackageActivationContext.GetConfigurationPackageObject("Config");
+                string connectionString = settings.Settings.Sections["AzureStorageQueue"].Parameters["StorageConnectionString"].Value;
+                string queueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RegistrationQueueName"].Value;
+                string registrationResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["RegistrationResponseQueueName"].Value;
+                string loginQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginQueueName"].Value;
+                string loginResponseQueueName = settings.Settings.Sections["AzureStorageQueue"].Parameters["LoginResponseQueueName"].Value;
+            #endregion
+  
             _registrationQueue = new QueueClient(connectionString, queueName);
             _registrationQueue.CreateIfNotExists();
-
             _loginQueue = new QueueClient(connectionString, loginQueueName);
             _loginQueue.CreateIfNotExists();
 
-          
-
             _loginResponseQueue = new LoginResponseQueueService(connectionString, loginResponseQueueName);
-   
-            
+            _registrationUserResponseQueue = new RegistrationResponseQueueService(connectionString, registrationResponseQueueName);
 
+            string tableName = settings.Settings.Sections["AzureStorage"].Parameters["UsersTable"].Value;
+            string blobContainerName = settings.Settings.Sections["AzureStorage"].Parameters["BlobContainer"].Value;
             _tableStorageService = new TableStorageService(connectionString, tableName);
-           
+            _blobStorageService = new BlobStorageService(connectionString, blobContainerName);
             Task.Run(() => ProcessQueueMessagesAsync());
         }
         private async Task ProcessQueueMessagesAsync()
@@ -90,7 +83,7 @@ namespace AuthenticationService
                         foreach (QueueMessage message in RegQueueMessages)
                         {
 
-                            var newUser = JsonConvert.DeserializeObject<User>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            var newUser = JsonConvert.DeserializeObject<UserDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
                             await RegisterUserAsync(newUser);
                             await _registrationQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                         }
@@ -127,11 +120,57 @@ namespace AuthenticationService
                 await Task.Delay(1000);
             }
         }
-        public async Task RegisterUserAsync(User newUser)
+        public async Task RegisterUserAsync(UserDTO newUser)
         {
             try
             {
-                _tableStorageService.CreateUserAsync(newUser);
+                await LoadData();
+
+               // string imageUrl = await _blobStorageService.UploadImageAsync(newUser.Image);            
+                int rowkey = 0;
+                string hashPass = "";
+                TypeOfUser typeOfUser = TypeOfUser.User;
+                if (!ExistUser(newUser.Email))
+                {
+                    if (!newUser.Password.Equals(newUser.ConfirmPassword))
+                    {
+                        
+                        await _registrationUserResponseQueue.QueueRegistrationUserResponseAsync("Passwords dont match!");
+                        return;
+                    }
+                    if (allUsers.Count == 0)
+                    {
+                        rowkey = 1;
+                    }
+                    else
+                        rowkey = allUsers.Count + 1;
+                    if (newUser.Email.Equals("david.02.petrovic@gmail.com"))
+                    {
+                        typeOfUser = TypeOfUser.Admin;
+                    }
+                    hashPass = HashPassword(newUser.Password);
+                    User user = new User
+                    {
+                        RowKey = rowkey.ToString(),
+                        Firstname = newUser.Firstname,
+                        Lastname = newUser.Lastname,
+                        Username = newUser.Username,
+                        Email = newUser.Email,
+                        Password = hashPass,
+                        DateOfBirth = newUser.DateOfBirth,
+                        Address = newUser.Address,
+                        ImageUrl = newUser.ImageUrl,
+                        TypeOfUser = typeOfUser
+                    };
+                    await _tableStorageService.CreateUserAsync(user);
+                    await _registrationUserResponseQueue.QueueRegistrationUserResponseAsync("success");
+
+                }
+                else
+                   await _registrationUserResponseQueue.QueueRegistrationUserResponseAsync("That email alredy exists, please try another one!");
+                   
+              
+                
             }
             catch (Exception ex)
             {
@@ -151,14 +190,11 @@ namespace AuthenticationService
 
                 if (loggedInUser != null)
                 {
-                    //   HttpContext.Session.SetString("TypeOfUser", "Admin");
-                    //  HttpContext.Session.SetObjectAsJson("LoggedInUser", loggedInUser);
-
                     await _loginResponseQueue.QueueLoginResponseAsync("success");
                 }
                 else
                 {
-                    await _loginResponseQueue.QueueLoginResponseAsync("failed");
+                    await _loginResponseQueue.QueueLoginResponseAsync("Invalid email or password, try again!");
                 }
             }
             catch (Exception e)
@@ -167,6 +203,7 @@ namespace AuthenticationService
                 return;
             }
         }
+      
         public string HashPassword(string password)
         {
             try
@@ -192,7 +229,20 @@ namespace AuthenticationService
             }
 
         }
+        public bool ExistUser(string email)
+        {
+            bool result = false;
 
+            foreach (var item in allUsers)
+            {
+                if (item.Email == email)
+                {
+                    result = true;
+                    return result;
+                }
+            }
+            return result;
+        }
         public async Task LoadData()
         {
             try

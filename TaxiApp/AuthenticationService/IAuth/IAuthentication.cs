@@ -13,7 +13,7 @@ namespace AuthenticationService.IAuth
    
     public interface IAuthentication
     {
-        Task RegisterUserAsync(User newUser);
+        Task RegisterUserAsync(UserDTO newUser);
         Task LoginUserAsync(LoginDTOUser loginDTOUser);
      
     }

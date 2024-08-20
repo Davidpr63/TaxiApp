@@ -1,6 +1,7 @@
 ﻿
 using ApiGatewayService.Models;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 
 namespace ApiGatewayService.DTOmodels
 {
@@ -17,6 +18,7 @@ namespace ApiGatewayService.DTOmodels
         public string? ConfirmPassword { get; set; }
         public string? DateOfBirth { get; set; }
         public string? Address { get; set; }
+   
         public IFormFile? Image { get; set; }
         public string? ImageUrl { get; set; }
         public string? VerifcationStatus { get; set; }

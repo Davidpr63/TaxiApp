@@ -1,5 +1,6 @@
 ﻿using ApiGatewayService.CloudStorageService;
 using ApiGatewayService.Common;
+using ApiGatewayService.DtoMapper.IDtoMapper;
 using ApiGatewayService.DTOmodels;
 using ApiGatewayService.Models;
 using ApiGatewayService.QueueApiServiceCommunication;
@@ -26,13 +27,16 @@ namespace ApiGatewayService.Controllers
         private readonly RideQueueService _rideQueueService;
         private TokenGenerateService _tokenGenerateService;
         private TableStorageService _tableStorageService;
+        private BlobStorageService _blobStorageService;
         private RidesTableStorage _ridesTableStorage;
         private List<User> users = new List<User>();
         private List<DriverVerification> driverVerifications = new List<DriverVerification>();
         private List<Ride> allRides = new List<Ride>();
-        public UserController(RidesTableStorage ridesTableStorage, RideQueueService rideQueueService, DriverQueueService driverApplicationQueueService, DriversVerificationTableStorage driversVerificationTableStorage, UpdateUserQueueService updateUserQueueService, UpdateUserResponseQueue updateUserResponseQueue,TableStorageService tableStorageService, TokenGenerateService tokenGenerateService)
+        private IMapper _mapper;
+        public UserController(IMapper mapper, BlobStorageService blobStorageService, RidesTableStorage ridesTableStorage, RideQueueService rideQueueService, DriverQueueService driverApplicationQueueService, DriversVerificationTableStorage driversVerificationTableStorage, UpdateUserQueueService updateUserQueueService, UpdateUserResponseQueue updateUserResponseQueue,TableStorageService tableStorageService, TokenGenerateService tokenGenerateService)
         {
             _tableStorageService = tableStorageService;
+            _blobStorageService = blobStorageService;
             _ridesTableStorage = ridesTableStorage;
             _driversVerificationTableStorage = driversVerificationTableStorage;
             _updateUserQueueService = updateUserQueueService;
@@ -40,6 +44,7 @@ namespace ApiGatewayService.Controllers
             _driverQueueService = driverApplicationQueueService;
             _tokenGenerateService = tokenGenerateService;
             _rideQueueService = rideQueueService;
+            _mapper = mapper;
         }
 
         [HttpPut("update-user")]
@@ -48,7 +53,9 @@ namespace ApiGatewayService.Controllers
             try
             {
                 await LoadData("u");
-                await _updateUserQueueService.QueueUpdateUserAsync(updateUserData);
+                updateUserData.ImageUrl = await _blobStorageService.UploadImageAsync(updateUserData.Image);
+                User NewUsersData = _mapper.DtoUserToUser_UpdateUser(updateUserData);
+                await _updateUserQueueService.QueueUpdateUserAsync(NewUsersData);
                 string respone = await _updateUserResponseQueueService.QueueUpdateUserResponseAsync();
                 User LoggedInUser = users.FirstOrDefault(x => x.RowKey == updateUserData.UserId);
                 if (respone.Equals("success"))

@@ -16,6 +16,10 @@ using Azure.Storage.Queues.Models;
 using Newtonsoft.Json;
 using ApiGatewayService.TokenService;
 using System.Net;
+using Azure;
+using ApiGatewayService.DtoMapper;
+using ApiGatewayService.DtoMapper.IDtoMapper;
+using ApiGatewayService.FacebookAuth;
 
 namespace ApiGatewayService.Controllers
 {
@@ -25,22 +29,25 @@ namespace ApiGatewayService.Controllers
     {
         private readonly RegistrationQueueService _authQueueService;
         private readonly LoginQueueService _loginQueueService;
-        private readonly LoginResponseQueue _loginResponseQueueService;
+        
        
 
         private readonly TableStorageService _tableStorageService;
         private readonly BlobStorageService _blobStorageService;
         private TokenGenerateService _tokenGenerateService;
         private List<User> allUsers = new List<User>();
-        public AuthController(TokenGenerateService tokenGenerateService, RegistrationQueueService authQueueService, LoginQueueService loginQueueService, LoginResponseQueue loginResponseQueueService,  TableStorageService tableStorageService, BlobStorageService blobStorageService)
+        private readonly IMapper _mapper;
+        private readonly IFacebookAuthService _facebookAuthService;
+
+        public AuthController(IMapper mapper, IFacebookAuthService facebookAuthService, TokenGenerateService tokenGenerateService, RegistrationQueueService authQueueService, LoginQueueService loginQueueService, TableStorageService tableStorageService, BlobStorageService blobStorageService)
         {
             _authQueueService = authQueueService;
             _tableStorageService = tableStorageService;
             _blobStorageService = blobStorageService;
             _loginQueueService = loginQueueService;
-            _loginResponseQueueService = loginResponseQueueService;
             _tokenGenerateService = tokenGenerateService;
-           
+            _mapper = mapper;
+            _facebookAuthService = facebookAuthService;
             
         }
         [HttpPost("register")]
@@ -48,52 +55,19 @@ namespace ApiGatewayService.Controllers
         {
             try
             {
-                await LoadData();
-
-                string imageUrl = await _blobStorageService.UploadImageAsync(userDTO.Image);
-                //await _tableStorageService.DeleteUserAsync("UserTable", "1");
-                int rowkey = 0;
-                string hashPass = "";
-                // TypeOfUser typeOfUser = TypeOfUser.User;
-                TypeOfUser typeOfUser = TypeOfUser.User;
-                if (!ExistUser(userDTO.Email))
+               
+                userDTO.ImageUrl = await _blobStorageService.UploadImageAsync(userDTO.Image);             
+                User user = _mapper.DtoUserToUser(userDTO);             
+                await _authQueueService.QueueUserRegistrationAsync(user);
+                string response = await _authQueueService.QueueRegistrationUserResponseAsync();
+                if (response.Equals("success"))
                 {
-                    if (!userDTO.Password.Equals(userDTO.ConfirmPassword))
-                    {
-                        return Ok(new { success = false, error = "Passwords dont match!" });
-                    }
-                    if (allUsers.Count == 0)
-                    {
-                        rowkey = 1;
-                    }
-                    else
-                        rowkey = allUsers.Count + 1;
-                    if (userDTO.Email.Equals("david.02.petrovic@gmail.com"))
-                    {
-                        typeOfUser = TypeOfUser.Admin;
-                    }
-                    hashPass = HashPassword(userDTO.Password);
-                    User user = new User
-                    {
-                        RowKey = rowkey.ToString(),
-                        Firstname = userDTO.Firstname,
-                        Lastname = userDTO.Lastname,
-                        Username = userDTO.Username,
-                        Email = userDTO.Email,
-                        Password = hashPass,
-                        DateOfBirth = userDTO.DateOfBirth,
-                        Address = userDTO.Address,
-                        ImageUrl = imageUrl,
-                        TypeOfUser = typeOfUser
-                    };
-                    await _authQueueService.QueueUserRegistrationAsync(user);
+                    return Ok(new { success = true });
                 }
                 else
                 {
-                    return Ok(new { success = false, error = "That email already exists, please use another one." });
+                    return Ok(new { success = false, error = response });
                 }
-
-                return Ok(new { success = true });
             }
             catch (Exception e)
             {
@@ -107,21 +81,20 @@ namespace ApiGatewayService.Controllers
         {
             try
             {
-                await _loginQueueService.QueueLoginUserAsync(user);
-                User LoggedInUser = new User();
-               
-                await LoadData();
-                LoggedInUser = allUsers.FirstOrDefault(x => x.Email == user.Email);
-
-                if (await _loginResponseQueueService.QueueLoginResponseAsync())
+                await _loginQueueService.QueueLoginUserAsync(user);             
+                string response = await _loginQueueService.QueueLoginResponseAsync();
+                if (response.Equals("success"))
                 {
-                    
+
+                    User LoggedInUser = new User();
+                    await LoadData();
+                    LoggedInUser = allUsers.FirstOrDefault(x => x.Email == user.Email);
                     var token = _tokenGenerateService.GenerateToken(LoggedInUser);
                     return Ok(new { success = true , token});
                 }
                 else
                 {
-                    return Ok(new { success = false, error = "Invalid email or password, please try again" });
+                    return Ok(new { success = false, error = response });
                 }
             }
             catch (Exception e)
@@ -130,8 +103,22 @@ namespace ApiGatewayService.Controllers
                 return BadRequest("Register exception :" + e.Message);
             }
         }
-       
 
+        [HttpPost("facebook-login")]
+        public async Task<IActionResult> FacebookLogin([FromBody] FacebookAuthRequestDTO request)
+        {
+            
+            await LoadData();
+            var authResult = await _facebookAuthService.AuthenticateAsync(request.AccessToken, allUsers.Count);
+            await _tableStorageService.CreateUserAsync(authResult.User);
+            if (!authResult.Success)
+            {
+                return BadRequest(authResult.Errors);
+            }
+            string token = authResult.Token;
+            
+            return Ok(new { token });
+        }
         public async Task LoadData()
         {
             try
@@ -144,45 +131,7 @@ namespace ApiGatewayService.Controllers
 
             }
         }
-        public string HashPassword(string password)
-        {
-            try
-            {
-                using (SHA256 sha256Hash = SHA256.Create())
-                {
-
-                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-
-                    StringBuilder builder = new StringBuilder();
-                    for (int i = 0; i < bytes.Length; i++)
-                    {
-                        builder.Append(bytes[i].ToString("x2"));
-                    }
-                    return builder.ToString();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-
-        }
-        public bool ExistUser(string email)
-        {
-            bool result = false;
-
-            foreach (var item in allUsers)
-            {
-                if (item.Email == email)
-                {
-                    result = true;
-                    return result;
-                }
-            }
-            return result;
-        }
+      
     }
   
 }

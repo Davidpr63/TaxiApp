@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace ApiGatewayService.Models
 {
@@ -15,6 +16,8 @@ namespace ApiGatewayService.Models
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
+     
+        public string? ConfirmPassword { get; set; }
         public string? DateOfBirth { get; set; }
         public string? Address { get; set; }
         public string? image { get; set; }

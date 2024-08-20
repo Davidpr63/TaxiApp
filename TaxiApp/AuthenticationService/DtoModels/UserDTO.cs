@@ -1,9 +1,10 @@
 ﻿
+using AuthenticationService.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace AuthenticationService.DTOmodels
 {
-    public enum TypeOfUser { Admin, Driver, User};
+  
     public class UserDTO
     {
         public TypeOfUser? TypeOfUser { get; set; }

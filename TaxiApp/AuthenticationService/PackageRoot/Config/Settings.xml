@@ -15,6 +15,7 @@
 	<Section Name="AzureStorageQueue">
 		<Parameter Name="StorageConnectionString" Value="UseDevelopmentStorage=true" />
 		<Parameter Name="RegistrationQueueName" Value="registration-queue" />
+		<Parameter Name="RegistrationResponseQueueName" Value="registration-response-queue" />
 		<Parameter Name="LoginQueueName" Value="login-queue" />
 		<Parameter Name="LoginResponseQueueName" Value="login-response-queue" />
 		

@@ -152,7 +152,7 @@ namespace UserService
                         foreach (QueueMessage message in UpdateUserQueueMessages)
                         {
 
-                            var loginUser = JsonConvert.DeserializeObject<UserDTO>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
+                            var loginUser = JsonConvert.DeserializeObject<User>(Encoding.UTF8.GetString(Convert.FromBase64String(message.MessageText)));
                             await UpdateUserAsync(loginUser);
                             await _updateUserQueue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
                         }
@@ -252,17 +252,18 @@ namespace UserService
         }
         
 
-        public async Task UpdateUserAsync(UserDTO updateUserData)
+        public async Task UpdateUserAsync(User updateUserData)
         {
             try
             {
                 await LoadData();
                 string imageUrl = "";
-                User loggedInUser = allUsers.FirstOrDefault(x => x.RowKey == updateUserData.UserId);
+                User loggedInUser = allUsers.FirstOrDefault(x => x.RowKey == updateUserData.RowKey);
                 if (!string.IsNullOrEmpty(updateUserData.Password) || !string.IsNullOrEmpty(updateUserData.ConfirmPassword) && updateUserData.Password != updateUserData.ConfirmPassword)
                 {
                     //return Ok(new { success = false, error = "Passwords dont match!" });
                     await _updateUserResponseQueueService.QueueUpdateUserResponseAsync("Passwords dont match!");
+                    return;
                 }
 
 
@@ -274,8 +275,9 @@ namespace UserService
                     }
                     else
                     {
-                        // return Ok(new { success = false, error = "That email already exists, please use another one." });
+                     
                         await _updateUserResponseQueueService.QueueUpdateUserResponseAsync("That email already exists, please use another one!");
+                        return;
                     }
                 }
                 if (!string.IsNullOrEmpty(updateUserData.Firstname))
@@ -306,10 +308,10 @@ namespace UserService
                     loggedInUser.Address = updateUserData.Address;
                 }
 
-                if (updateUserData.Image != null)
+                if (updateUserData.ImageUrl != null)
                 {
-                    imageUrl = await _blobStorageService.UploadImageAsync(updateUserData.Image);
-                    loggedInUser.ImageUrl = imageUrl;
+                    //imageUrl = await _blobStorageService.UploadImageAsync(updateUserData.ImageUrl);
+                    loggedInUser.ImageUrl = updateUserData.ImageUrl;
                 }
 
                 await _tableStorageService.UpdateUserAsync(loggedInUser);

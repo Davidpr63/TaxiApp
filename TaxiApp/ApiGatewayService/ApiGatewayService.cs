@@ -9,6 +9,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ApiGatewayService.QueueServiceCommunication;
+using ApiGatewayService.DtoMapper.IDtoMapper;
+using ApiGatewayService.DtoMapper;
+using ApiGatewayService.FacebookAuth;
 
 namespace ApiGatewayService
 {
@@ -42,41 +45,12 @@ namespace ApiGatewayService
                         
                         builder.Services.AddSingleton<DriversVerificationTableStorage>();
                         builder.Services.AddSingleton<RidesTableStorage>();
-                        //builder.Services.AddSingleton<IAuthentication>(provider =>
-                        //{
-                        //    var serviceUri = new Uri("fabric:/TaxiApp/AuthenticationService");
-                        //    return ServiceProxy.Create<IAuthentication>(serviceUri);
-                        //});
-                        builder.Services.AddSingleton<RegistrationQueueService>(provider =>
-                        {
-                            var configuration = provider.GetRequiredService<IConfiguration>();
-
+                        builder.Services.AddSingleton<RegistrationQueueService>();
+                        builder.Services.AddSingleton<LoginQueueService>();
+                        builder.Services.AddScoped<IMapper, Mapper>();
+                        builder.Services.AddScoped<IFacebookAuthService, FacebookAuthService>();
                         
-                            var connectionString = configuration["AzureStorage:ConnectionString"];
-                            var queueName = configuration["AzureStorage:RegistrationQueueName"];
-
-                            return new RegistrationQueueService(connectionString, queueName);
-                        });
-                        builder.Services.AddSingleton<LoginQueueService>(provider =>
-                        {
-                           var configuration = provider.GetRequiredService<IConfiguration>();
-
-
-                            var connectionString = configuration["AzureStorage:ConnectionString"];
-                            var queueName = configuration["AzureStorage:LoginQueueName"];
-
-                            return new LoginQueueService(connectionString, queueName);
-                        });
-                        builder.Services.AddSingleton<LoginResponseQueue>(provider =>
-                        {
-                           var configuration = provider.GetRequiredService<IConfiguration>();
-
-
-                            var connectionString = configuration["AzureStorage:ConnectionString"];
-                            var queueName = configuration["AzureStorage:LoginResponseQueueName"];
-
-                            return new LoginResponseQueue(connectionString, queueName);
-                        });
+                       
                         builder.Services.AddSingleton<UpdateUserQueueService>(provider =>
                         {
                            var configuration = provider.GetRequiredService<IConfiguration>();
@@ -136,6 +110,11 @@ namespace ApiGatewayService
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
                         builder.Services.AddSwaggerGen();
+                        builder.Services.AddAuthentication().AddFacebook(opt => {
+                            opt.ClientId= "461062726838179";
+                            opt.ClientSecret = "8e3560c3af9d8da687aafadd29c3b8b9";
+                        });
+                     
                         builder.Services.AddCors(options =>
                         {
                             options.AddPolicy("AllowSpecificOrigin",

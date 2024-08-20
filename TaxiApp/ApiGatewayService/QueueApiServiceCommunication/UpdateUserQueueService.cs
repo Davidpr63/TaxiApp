@@ -1,4 +1,5 @@
 ﻿using ApiGatewayService.DTOmodels;
+using ApiGatewayService.Models;
 using Azure.Storage.Queues;
 using Newtonsoft.Json;
 using System.Text;
@@ -16,7 +17,7 @@ namespace ApiGatewayService.QueueApiServiceCommunication
             _queueClient.CreateIfNotExists();
         }
 
-        public async Task QueueUpdateUserAsync(UserDTO user)
+        public async Task QueueUpdateUserAsync(User user)
         {
             try
             {

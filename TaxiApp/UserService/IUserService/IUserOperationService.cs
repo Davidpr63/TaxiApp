@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using UserService.DTOmodels;
 using UserService.DTOModels;
+using UserService.Models;
 
 namespace UserService.IUserService
 {
     public interface IUserOperationService
     {
-        Task UpdateUserAsync(UserDTO updateUserData);
+        Task UpdateUserAsync(User updateUserData);
         Task HandleDriversVerification(string id);
         Task ApproveDriver(string id);
         Task RejectDriversRequest(string id);
